@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:chroma_switch/core/services/audio_service.dart';
+import 'package:chroma_switch/core/services/storage_service.dart';
 import 'package:chroma_switch/state/game_state_notifier.dart';
 import 'package:chroma_switch/state/score_notifier.dart';
 
@@ -15,6 +17,16 @@ final getIt = GetIt.instance;
 /// - Flame components access state via GetIt (NOT Riverpod watchers)
 void setupDependencies() {
   // ============================================
+  // Core Services
+  // ============================================
+
+  // AudioService - manages SFX and BGM playback
+  getIt.registerLazySingleton<AudioService>(() => AudioService());
+
+  // StorageService - manages high score persistence
+  getIt.registerLazySingleton<StorageService>(() => StorageService());
+
+  // ============================================
   // State Bridge (Flame → Riverpod)
   // ============================================
 
@@ -23,14 +35,13 @@ void setupDependencies() {
 
   // ScoreNotifier - manages current score and high score
   getIt.registerLazySingleton<ScoreNotifier>(() => ScoreNotifier());
+}
 
-  // ============================================
-  // Core Services (to be added in later sprints)
-  // ============================================
-
-  // TODO: Sprint 4.2 - AudioService
-  // getIt.registerLazySingleton<AudioService>(() => AudioService());
-
-  // TODO: Sprint 4.4 - StorageService
-  // getIt.registerLazySingleton<StorageService>(() => StorageService());
+/// Initialize async services
+///
+/// Called after setupDependencies() to initialize services that
+/// require async initialization (e.g., SharedPreferences, audio preload).
+Future<void> initializeServices() async {
+  await getIt<StorageService>().init();
+  await getIt<AudioService>().init();
 }
