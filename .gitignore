@@ -53,4 +53,19 @@ private_docs/
 .agent/
 .agents/
 
+# Environment and secrets
+.env
+.env.*
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+
 
