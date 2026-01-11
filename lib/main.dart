@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chroma_switch/core/di/service_locator.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Setup dependency injection
+  setupDependencies();
+
+  runApp(
+    // Wrap with ProviderScope for Riverpod
+    const ProviderScope(child: MyApp()),
+  );
 }
 
 class MyApp extends StatelessWidget {
