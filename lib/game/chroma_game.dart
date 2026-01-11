@@ -3,6 +3,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:chroma_switch/core/di/service_locator.dart';
 import 'package:chroma_switch/core/theme/app_colors.dart';
+import 'package:chroma_switch/game/components/player_ball.dart';
 import 'package:chroma_switch/state/game_state_notifier.dart';
 import 'package:chroma_switch/state/score_notifier.dart';
 
@@ -15,6 +16,9 @@ import 'package:chroma_switch/state/score_notifier.dart';
 /// - Access GetIt services directly for state updates
 /// - Use HasCollisionDetection mixin for collision callbacks
 class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
+  /// The player ball component
+  late PlayerBall playerBall;
+
   ChromaGame();
 
   @override
@@ -27,7 +31,10 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     // Start the game in playing state
     getIt<GameStateNotifier>().startGame();
 
-    // TODO: Sprint 1.3 - Add player ball
+    // Add player ball
+    playerBall = PlayerBall();
+    await add(playerBall);
+
     // TODO: Sprint 2.2 - Add obstacle manager
     // TODO: Sprint 3.2 - Add camera follow
 
@@ -38,8 +45,11 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    // TODO: Sprint 1.3 - Implement player jump
-    debugPrint('Tap detected at ${event.localPosition}');
+
+    // Only jump if game is actively playing
+    if (getIt<GameStateNotifier>().isPlaying) {
+      playerBall.jump();
+    }
   }
 
   /// Trigger game over state
@@ -66,7 +76,9 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     // Start new game
     getIt<GameStateNotifier>().startGame();
 
-    // TODO: Sprint 1.3 - Reset player position
+    // Reset player ball
+    playerBall.reset();
+
     // TODO: Sprint 3.2 - Clear and respawn obstacles
 
     debugPrint('Game restarting');
