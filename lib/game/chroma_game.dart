@@ -2,8 +2,13 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:chroma_switch/core/di/service_locator.dart';
+import 'package:chroma_switch/core/services/audio_service.dart';
 import 'package:chroma_switch/core/theme/app_colors.dart';
+import 'package:chroma_switch/game/components/game_camera.dart';
 import 'package:chroma_switch/game/components/player_ball.dart';
+import 'package:chroma_switch/game/effects/explosion_particle.dart';
+import 'package:chroma_switch/game/effects/screen_shake.dart';
+import 'package:chroma_switch/game/logic/obstacle_manager.dart';
 import 'package:chroma_switch/state/game_state_notifier.dart';
 import 'package:chroma_switch/state/score_notifier.dart';
 
@@ -19,6 +24,21 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   /// The player ball component
   late PlayerBall playerBall;
 
+  /// Screen shake effect component
+  late ScreenShake screenShake;
+
+  /// Game camera that follows player upward
+  late GameCamera gameCamera;
+
+  /// Obstacle spawning and recycling manager
+  late ObstacleManager obstacleManager;
+
+  /// Whether a flash is currently active
+  bool _flashActive = false;
+
+  /// Getter for flash state (used by UI)
+  bool get flashActive => _flashActive;
+
   ChromaGame();
 
   @override
@@ -28,15 +48,28 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Start the game in playing state
-    getIt<GameStateNotifier>().startGame();
+    // Add screen shake component
+    screenShake = ScreenShake();
+    await add(screenShake);
 
     // Add player ball
     playerBall = PlayerBall();
     await add(playerBall);
 
-    // TODO: Sprint 2.2 - Add obstacle manager
-    // TODO: Sprint 3.2 - Add camera follow
+    // Add game camera (follows player upward)
+    gameCamera = GameCamera();
+    gameCamera.onPlayerFall = triggerGameOver;
+    await add(gameCamera);
+
+    // Add obstacle manager
+    obstacleManager = ObstacleManager();
+    await add(obstacleManager);
+
+    // Start background music
+    getIt<AudioService>().playBgm('bgm.mp3');
+
+    // Show start overlay initially
+    overlays.add('start');
 
     debugPrint('ChromaGame loaded');
   }
@@ -49,23 +82,49 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     // Only jump if game is actively playing
     if (getIt<GameStateNotifier>().isPlaying) {
       playerBall.jump();
+      getIt<AudioService>().playJump();
     }
   }
 
   /// Trigger game over state
   /// Called when player collides with wrong color segment or falls
   void triggerGameOver() {
+    // Prevent multiple triggers
+    if (!getIt<GameStateNotifier>().isPlaying) return;
+
     // Update high score if needed
     getIt<ScoreNotifier>().updateHighScoreIfNeeded();
 
     // Set game state to game over
     getIt<GameStateNotifier>().setGameOver();
 
-    // TODO: Sprint 4.1 - Add death effects
-    // - Spawn death particles
-    // - Screen shake
+    // Play crash sound
+    getIt<AudioService>().playCrash();
+
+    // Spawn death particles (25 particles)
+    _spawnDeathParticles();
+
+    // Trigger screen shake
+    screenShake.trigger();
+
+    // Show game over overlay
+    overlays.remove('hud');
+    overlays.add('gameOver');
 
     debugPrint('Game Over triggered');
+  }
+
+  /// Spawn explosion particles at player position
+  void _spawnDeathParticles() {
+    final playerPosition = playerBall.position.clone();
+    final playerColor = playerBall.currentColor;
+
+    // Spawn 25 particles for dramatic effect
+    for (int i = 0; i < 25; i++) {
+      add(
+        ExplosionParticle(position: playerPosition.clone(), color: playerColor),
+      );
+    }
   }
 
   /// Restart the game
@@ -79,14 +138,33 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     // Reset player ball
     playerBall.reset();
 
-    // TODO: Sprint 3.2 - Clear and respawn obstacles
+    // Reset camera
+    gameCamera.reset();
+
+    // Reset obstacle manager
+    obstacleManager.reset();
+
+    // Reset screen shake
+    screenShake.reset();
 
     debugPrint('Game restarting');
   }
 
   /// Flash the screen white (on color collect)
   void flashScreen() {
-    // TODO: Sprint 4.1 - Implement screen flash
-    debugPrint('Screen flash');
+    _flashActive = true;
+    getIt<AudioService>().playCollect();
+
+    // Reset flash after 50ms
+    Future.delayed(const Duration(milliseconds: 50), () {
+      _flashActive = false;
+    });
+  }
+
+  /// Start playing the game (called from start overlay)
+  void startPlaying() {
+    getIt<GameStateNotifier>().startGame();
+    overlays.remove('start');
+    overlays.add('hud');
   }
 }
