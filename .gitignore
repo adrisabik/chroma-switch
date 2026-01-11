@@ -43,3 +43,29 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Private documentation
+.docs/
+docs/
+private_docs/
+
+# Agent private files - NEVER PUSH
+.agent/
+.agents/
+
+# Environment and secrets
+.env
+.env.*
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+
