@@ -167,26 +167,34 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   // Difficulty Scaling Functions
   // ============================================
 
-  /// Get rotation speed multiplier based on score (1.0 → 1.5)
+  /// Get rotation speed multiplier based on score (3-tier system)
   ///
-  /// Linear scaling from score 0 to mediumThreshold
+  /// - Easy (score < easyThreshold): 0.7x (slower, gentler start)
+  /// - Medium (score < mediumThreshold): 1.0x (normal speed)
+  /// - Hard (score >= mediumThreshold): 1.5x (challenging)
   double getRotationMultiplier(int score) {
-    const minMultiplier = 1.0;
-    const maxMultiplier = 1.5;
-
-    final progress = (score / GameConstants.mediumThreshold).clamp(0.0, 1.0);
-    return minMultiplier + (maxMultiplier - minMultiplier) * progress;
+    if (score < GameConstants.easyThreshold) {
+      return 0.7; // Easy - slower rotation
+    } else if (score < GameConstants.mediumThreshold) {
+      return 1.0; // Medium - normal speed
+    } else {
+      return 1.5; // Hard - fast rotation
+    }
   }
 
-  /// Get spawn gap multiplier based on score (1.0 → 0.7)
+  /// Get spawn gap multiplier based on score (3-tier system)
   ///
-  /// Obstacles get closer together as score increases
+  /// - Easy (score < easyThreshold): 1.2x (more space)
+  /// - Medium (score < mediumThreshold): 1.0x (normal spacing)
+  /// - Hard (score >= mediumThreshold): 0.8x (tighter spacing)
   double getSpawnGapMultiplier(int score) {
-    const maxMultiplier = 1.0;
-    const minMultiplier = 0.7;
-
-    final progress = (score / GameConstants.mediumThreshold).clamp(0.0, 1.0);
-    return maxMultiplier - (maxMultiplier - minMultiplier) * progress;
+    if (score < GameConstants.easyThreshold) {
+      return 1.2; // Easy - more space between obstacles
+    } else if (score < GameConstants.mediumThreshold) {
+      return 1.0; // Medium - normal spacing
+    } else {
+      return 0.8; // Hard - tighter spacing
+    }
   }
 
   /// Get list of active obstacles (for testing/debugging)
