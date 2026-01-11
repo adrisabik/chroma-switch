@@ -11,7 +11,7 @@ import 'package:chroma_switch/core/theme/app_colors.dart';
 /// - Never use Riverpod watchers inside update() - causes frame drops
 /// - Access GetIt services directly for state updates
 /// - Use HasCollisionDetection mixin for collision callbacks
-class ChromaGame extends FlameGame with HasCollisionDetection {
+class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   ChromaGame();
 
   @override
@@ -26,6 +26,14 @@ class ChromaGame extends FlameGame with HasCollisionDetection {
     // TODO: Sprint 3.2 - Add camera follow
 
     debugPrint('ChromaGame loaded');
+  }
+
+  /// Handle tap anywhere on screen to make player jump
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    // TODO: Sprint 1.3 - Implement player jump
+    debugPrint('Tap detected at ${event.localPosition}');
   }
 
   /// Trigger game over state
