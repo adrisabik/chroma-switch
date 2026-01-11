@@ -1,7 +1,10 @@
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:chroma_switch/core/di/service_locator.dart';
 import 'package:chroma_switch/core/theme/app_colors.dart';
+import 'package:chroma_switch/state/game_state_notifier.dart';
+import 'package:chroma_switch/state/score_notifier.dart';
 
 /// Main Flame game class for Chroma Switch
 ///
@@ -21,7 +24,10 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // TODO: Sprint 1.2 - Add player ball
+    // Start the game in playing state
+    getIt<GameStateNotifier>().startGame();
+
+    // TODO: Sprint 1.3 - Add player ball
     // TODO: Sprint 2.2 - Add obstacle manager
     // TODO: Sprint 3.2 - Add camera follow
 
@@ -39,19 +45,30 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   /// Trigger game over state
   /// Called when player collides with wrong color segment or falls
   void triggerGameOver() {
-    // TODO: Sprint 2.2 - Implement death sequence
+    // Update high score if needed
+    getIt<ScoreNotifier>().updateHighScoreIfNeeded();
+
+    // Set game state to game over
+    getIt<GameStateNotifier>().setGameOver();
+
+    // TODO: Sprint 4.1 - Add death effects
     // - Spawn death particles
     // - Screen shake
-    // - Update game state notifier
+
     debugPrint('Game Over triggered');
   }
 
   /// Restart the game
   void restart() {
-    // TODO: Sprint 1.2 - Implement restart
-    // - Reset player position
-    // - Clear obstacles
-    // - Reset score
+    // Reset score
+    getIt<ScoreNotifier>().reset();
+
+    // Start new game
+    getIt<GameStateNotifier>().startGame();
+
+    // TODO: Sprint 1.3 - Reset player position
+    // TODO: Sprint 3.2 - Clear and respawn obstacles
+
     debugPrint('Game restarting');
   }
 
