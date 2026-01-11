@@ -111,6 +111,14 @@ class AppTextStyles {
     color: Colors.white70,
   );
 
+  /// Medium label text
+  static const TextStyle labelMedium = TextStyle(
+    fontFamily: 'Exo2',
+    fontSize: 16.0,
+    fontWeight: FontWeight.w500,
+    color: Colors.white70,
+  );
+
   /// Caption text (smallest)
   static const TextStyle caption = TextStyle(
     fontFamily: 'RobotoMono',
