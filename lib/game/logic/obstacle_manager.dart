@@ -22,7 +22,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   final List<ColorSwitcher> _activeSwitchers = [];
 
   /// Y position for next obstacle spawn (negative = above screen)
-  double _nextSpawnY = -500;
+  double _nextSpawnY = 0;
 
   /// Base gap between obstacles
   final double baseSpawnGap = GameConstants.spawnDistance;
@@ -30,6 +30,10 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    // Set initial spawn relative to starting player position (center of screen)
+    // This ensures the first obstacle is visible or just above the screen
+    _nextSpawnY = (game.size.y / 2) - GameConstants.spawnDistance;
 
     // Spawn initial obstacles
     _spawnInitialObstacles();
@@ -156,8 +160,8 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     }
     _activeSwitchers.clear();
 
-    // Reset spawn position
-    _nextSpawnY = -500;
+    // Reset spawn position relative to center
+    _nextSpawnY = (game.size.y / 2) - GameConstants.spawnDistance;
 
     // Spawn initial obstacles
     _spawnInitialObstacles();
