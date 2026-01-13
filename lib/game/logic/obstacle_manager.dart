@@ -52,7 +52,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     super.update(dt);
 
     // Check if we need to spawn more obstacles
-    final cameraTop = game.camera.viewfinder.position.y - game.size.y;
+    final cameraTop = game.camera.viewfinder.position.y - (game.size.y / 2);
     if (_nextSpawnY > cameraTop - baseSpawnGap * 2) {
       _spawnNextObstacle();
     }
@@ -120,7 +120,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
 
   /// Recycle obstacles that have fallen below the camera
   void _recycleOffscreenObstacles() {
-    final cameraBottom = game.camera.viewfinder.position.y + game.size.y;
+    final cameraBottom = game.camera.viewfinder.position.y + (game.size.y / 2);
     final deathZone = cameraBottom + GameConstants.deathZoneOffset;
 
     // Recycle obstacles
