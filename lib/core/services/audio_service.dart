@@ -39,7 +39,12 @@ class AudioService {
     if (!_soundEnabled) return;
 
     try {
-      FlameAudio.play('sfx/$name');
+      FlameAudio.play('sfx/$name').then(
+        (_) {},
+        onError: (e) {
+          debugPrint('Error playing SFX async: $e');
+        },
+      );
     } catch (e) {
       debugPrint('Error playing SFX: $e');
     }
@@ -63,7 +68,9 @@ class AudioService {
 
     try {
       stopBgm(); // Stop any current track
-      FlameAudio.bgm.play('music/$name');
+      FlameAudio.bgm.play('music/$name').catchError((e) {
+        debugPrint('Error playing BGM async: $e');
+      });
       _currentBgm = name;
     } catch (e) {
       debugPrint('Error playing BGM: $e');
