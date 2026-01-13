@@ -65,8 +65,8 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     obstacleManager = ObstacleManager();
     await add(obstacleManager);
 
-    // Start background music
-    getIt<AudioService>().playBgm('bgm.mp3');
+    // Start background music (disabled - no BGM file yet)
+    // getIt<AudioService>().playBgm('bgm.mp3');
 
     // Show start overlay initially
     overlays.add('start');
