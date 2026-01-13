@@ -20,7 +20,7 @@ class ObstacleRing extends PositionComponent with HasGameReference<ChromaGame> {
   final double rotationSpeed;
 
   /// The 4 ring segments
-  late List<RingSegment> segments;
+  List<RingSegment> segments = [];
 
   /// Current rotation angle
   double _currentAngle = 0.0;
@@ -39,7 +39,7 @@ class ObstacleRing extends PositionComponent with HasGameReference<ChromaGame> {
 
     // Create 4 segments, each 90° (π/2) apart with shuffled colors
     final colors = AppColors.gameColors.toList()..shuffle();
-    segments = [];
+    segments.clear();
 
     for (int i = 0; i < 4; i++) {
       final segment = RingSegment(

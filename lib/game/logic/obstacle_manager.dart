@@ -22,7 +22,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   final List<ColorSwitcher> _activeSwitchers = [];
 
   /// Y position for next obstacle spawn (negative = above screen)
-  double _nextSpawnY = -500;
+  double _nextSpawnY = 0;
 
   /// Base gap between obstacles
   final double baseSpawnGap = GameConstants.spawnDistance;
@@ -30,6 +30,10 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    // Set initial spawn relative to starting player position (center of screen)
+    // This ensures the first obstacle is visible or just above the screen
+    _nextSpawnY = (game.size.y / 2) - GameConstants.spawnDistance;
 
     // Spawn initial obstacles
     _spawnInitialObstacles();
@@ -48,7 +52,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     super.update(dt);
 
     // Check if we need to spawn more obstacles
-    final cameraTop = game.camera.viewfinder.position.y - game.size.y;
+    final cameraTop = game.camera.viewfinder.position.y - (game.size.y / 2);
     if (_nextSpawnY > cameraTop - baseSpawnGap * 2) {
       _spawnNextObstacle();
     }
@@ -116,7 +120,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
 
   /// Recycle obstacles that have fallen below the camera
   void _recycleOffscreenObstacles() {
-    final cameraBottom = game.camera.viewfinder.position.y + game.size.y;
+    final cameraBottom = game.camera.viewfinder.position.y + (game.size.y / 2);
     final deathZone = cameraBottom + GameConstants.deathZoneOffset;
 
     // Recycle obstacles
@@ -156,8 +160,8 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     }
     _activeSwitchers.clear();
 
-    // Reset spawn position
-    _nextSpawnY = -500;
+    // Reset spawn position relative to center
+    _nextSpawnY = (game.size.y / 2) - GameConstants.spawnDistance;
 
     // Spawn initial obstacles
     _spawnInitialObstacles();

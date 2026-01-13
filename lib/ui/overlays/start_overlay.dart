@@ -83,8 +83,7 @@ class StartOverlay extends ConsumerWidget {
           NeonButton(
             text: 'TAP TO PLAY',
             onTap: () {
-              game.overlays.remove('start');
-              game.overlays.add('hud');
+              game.startPlaying();
             },
             color: AppColors.cyan,
           ),

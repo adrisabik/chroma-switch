@@ -1,3 +1,6 @@
+import 'package:chroma_switch/ui/hud/score_hud.dart';
+import 'package:chroma_switch/ui/overlays/game_over_overlay.dart';
+import 'package:chroma_switch/ui/overlays/start_overlay.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,12 +59,11 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       body: GameWidget(
         game: _game,
-        // TODO: Sprint 4.3 - Add overlays
-        // overlayBuilderMap: {
-        //   'start': (context, game) => StartOverlay(game: game),
-        //   'gameOver': (context, game) => GameOverOverlay(game: game),
-        //   'hud': (context, game) => ScoreHud(game: game),
-        // },
+        overlayBuilderMap: {
+          'start': (context, game) => StartOverlay(game: _game),
+          'gameOver': (context, game) => GameOverOverlay(game: _game),
+          'hud': (context, game) => ScoreHud(game: _game),
+        },
       ),
     );
   }
