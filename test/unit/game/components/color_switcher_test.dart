@@ -22,20 +22,20 @@ void main() {
       expect(switcher.position.y, equals(200));
     });
 
-    test('accepts nextValidColors parameter', () {
+    test('accepts validColors parameter', () {
       final validColors = [AppColors.cyan, AppColors.magenta];
-      final switcher = ColorSwitcher(nextValidColors: validColors);
+      final switcher = ColorSwitcher(validColors: validColors);
       expect(switcher.nextValidColors, equals(validColors));
     });
 
-    test('nextValidColors is null by default', () {
+    test('nextValidColors is empty by default', () {
       final switcher = ColorSwitcher();
-      expect(switcher.nextValidColors, isNull);
+      expect(switcher.nextValidColors, isEmpty);
     });
 
     test('can create switcher for all game color combinations', () {
       for (final color in AppColors.gameColors) {
-        final switcher = ColorSwitcher(nextValidColors: [color]);
+        final switcher = ColorSwitcher(validColors: [color]);
         expect(switcher.nextValidColors, contains(color));
       }
     });

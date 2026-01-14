@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -6,19 +7,22 @@ import 'package:chroma_switch/core/di/service_locator.dart';
 import 'package:chroma_switch/core/theme/app_colors.dart';
 import 'package:chroma_switch/game/chroma_game.dart';
 import 'package:chroma_switch/game/components/color_switcher.dart';
+import 'package:chroma_switch/game/components/obstacle/base_obstacle.dart';
+import 'package:chroma_switch/game/components/obstacle/horizontal_bars.dart';
 import 'package:chroma_switch/game/components/obstacle/obstacle_ring.dart';
+import 'package:chroma_switch/game/components/obstacle/spinning_cross.dart';
 import 'package:chroma_switch/game/logic/obstacle_pool.dart';
 import 'package:chroma_switch/state/score_notifier.dart';
 
 /// Manages infinite spawning and recycling of obstacles
 ///
-/// Handles the spawning of ObstacleRings and ColorSwitchers above
+/// Handles the spawning of obstacles and ColorSwitchers above
 /// the camera viewport, and recycles them when they fall below.
 ///
 /// Difficulty scaling is applied based on current score.
 class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   final ObstaclePool _pool = ObstaclePool();
-  final List<ObstacleRing> _activeObstacles = [];
+  final List<BaseObstacle> _activeObstacles = [];
   final List<ColorSwitcher> _activeSwitchers = [];
 
   /// Y position for next obstacle spawn (negative = above screen)
@@ -73,12 +77,24 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     final spawnY = _nextSpawnY;
     final spawnX = game.size.x / 2;
 
-    // Spawn obstacle ring
-    final obstacle = _pool.acquireObstacle();
+    // Spawn obstacle
+    // Randomly select obstacle type
+    // Ring: 50%, Cross: 30%, Bars: 20%
+    final rand = Random().nextDouble();
+    BaseObstacle obstacle;
+
+    if (rand < 0.5) {
+      obstacle = _pool.acquireRing();
+    } else if (rand < 0.8) {
+      obstacle = _pool.acquireCross();
+    } else {
+      obstacle = _pool.acquireBar();
+    }
+
     obstacle.position = Vector2(spawnX, spawnY);
-    // Apply difficulty-scaled rotation speed
     obstacle.reset(
-      newRotationSpeed: GameConstants.baseRotationSpeed * rotationMultiplier,
+      position: Vector2(spawnX, spawnY),
+      difficultyMultiplier: rotationMultiplier,
     );
 
     _activeObstacles.add(obstacle);
@@ -93,10 +109,10 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
       switcher.position = Vector2(spawnX, switcherY);
 
       // Set valid colors based on next obstacle's segments
-      switcher.nextValidColors?.clear();
+      switcher.nextValidColors.clear();
       // All colors are valid since ring has all 4 colors
       // ignore: unused_local_variable
-      final validColors = obstacle.segments.map((s) => s.color).toList();
+      switcher.nextValidColors.addAll(obstacle.validColors);
 
       _activeSwitchers.add(switcher);
       game.add(switcher);
@@ -104,6 +120,16 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
 
     // Update next spawn position with difficulty-adjusted gap
     _nextSpawnY = spawnY - (baseSpawnGap * gapMultiplier);
+  }
+
+  void _releaseToPool(BaseObstacle obstacle) {
+    if (obstacle is ObstacleRing) {
+      _pool.releaseRing(obstacle);
+    } else if (obstacle is SpinningCross) {
+      _pool.releaseCross(obstacle);
+    } else if (obstacle is HorizontalBars) {
+      _pool.releaseBar(obstacle);
+    }
   }
 
   /// Get the colors of the next obstacle the player will encounter
@@ -115,7 +141,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
 
     // The "next" obstacle is the one at the highest Y (least negative)
     // that the player hasn't passed yet.
-    return _activeObstacles.first.segments.map((s) => s.color).toList();
+    return _activeObstacles.first.validColors;
   }
 
   /// Recycle obstacles that have fallen below the camera
@@ -127,7 +153,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     _activeObstacles.removeWhere((obstacle) {
       if (obstacle.position.y > deathZone) {
         obstacle.removeFromParent();
-        _pool.releaseObstacle(obstacle);
+        _releaseToPool(obstacle);
         return true;
       }
       return false;
@@ -149,7 +175,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
     // Remove all active obstacles
     for (final obstacle in _activeObstacles) {
       obstacle.removeFromParent();
-      _pool.releaseObstacle(obstacle);
+      _releaseToPool(obstacle);
     }
     _activeObstacles.clear();
 
@@ -202,7 +228,7 @@ class ObstacleManager extends Component with HasGameReference<ChromaGame> {
   }
 
   /// Get list of active obstacles (for testing/debugging)
-  List<ObstacleRing> get activeObstacles => List.unmodifiable(_activeObstacles);
+  List<BaseObstacle> get activeObstacles => List.unmodifiable(_activeObstacles);
 
   /// Get list of active switchers (for testing/debugging)
   List<ColorSwitcher> get activeSwitchers =>

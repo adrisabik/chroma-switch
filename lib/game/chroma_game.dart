@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:chroma_switch/core/di/service_locator.dart';
 import 'package:chroma_switch/core/services/audio_service.dart';
 import 'package:chroma_switch/core/theme/app_colors.dart';
+import 'package:chroma_switch/game/components/background_component.dart';
 import 'package:chroma_switch/game/components/game_camera.dart';
 import 'package:chroma_switch/game/components/player_ball.dart';
 import 'package:chroma_switch/game/effects/explosion_particle.dart';
@@ -47,6 +48,9 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    // Add dynamic background (behind everything)
+    await add(BackgroundComponent());
 
     // Add screen shake component
     screenShake = ScreenShake();
@@ -161,10 +165,43 @@ class ChromaGame extends FlameGame with HasCollisionDetection, TapCallbacks {
     });
   }
 
-  /// Start playing the game (called from start overlay)
+  // No changes to startPlaying needed unless Camera logic is there.
+
   void startPlaying() {
     getIt<GameStateNotifier>().startGame();
     overlays.remove('start');
     overlays.add('hud');
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // Dynamic Camera Zoom
+    // Zoom in slightly when jumping (velocity < 0)
+    // Zoom out when falling (velocity > 0)
+    const double baseZoom = 1.0;
+    const double maxZoomIn = 1.1; // Jump apex / rise
+    const double maxZoomOut = 0.9; // Fast fall
+
+    if (playerBall.isMounted) {
+      final vy = playerBall.velocity.y;
+
+      // Target zoom based on vertical velocity
+      double targetZoom = baseZoom;
+
+      if (vy < -100) {
+        // Rising fast
+        targetZoom = maxZoomIn;
+      } else if (vy > 200) {
+        // Falling fast
+        targetZoom = maxZoomOut;
+      }
+
+      // Smooth lerp
+      final currentZoom = camera.viewfinder.zoom;
+      camera.viewfinder.zoom =
+          currentZoom + (targetZoom - currentZoom) * dt * 2.0;
+    }
   }
 }
