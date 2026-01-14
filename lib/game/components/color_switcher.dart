@@ -25,8 +25,8 @@ import 'package:chroma_switch/state/score_notifier.dart';
 class ColorSwitcher extends PositionComponent
     with HasGameReference<ChromaGame>, CollisionCallbacks {
   /// Colors that are valid for passing through the next obstacle
-  /// If null, any different color is valid
-  final List<Color>? nextValidColors;
+  /// If empty, any different color is valid (fallback logic in _selectNewColor)
+  final List<Color> nextValidColors = [];
 
   /// Radius of the color switcher orb
   final double radius;
@@ -39,10 +39,14 @@ class ColorSwitcher extends PositionComponent
   double _pulseDirection = 1.0;
 
   ColorSwitcher({
-    this.nextValidColors,
+    List<Color>? validColors,
     this.radius = GameConstants.colorSwitcherRadius,
     super.position,
-  });
+  }) {
+    if (validColors != null) {
+      nextValidColors.addAll(validColors);
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -104,9 +108,9 @@ class ColorSwitcher extends PositionComponent
   Color _selectNewColor(Color currentColor) {
     List<Color> availableColors;
 
-    if (nextValidColors != null && nextValidColors!.isNotEmpty) {
+    if (nextValidColors.isNotEmpty) {
       // Filter to colors that are valid AND different from current
-      availableColors = nextValidColors!
+      availableColors = nextValidColors
           .where((c) => c != currentColor)
           .toList();
     } else {
