@@ -51,12 +51,12 @@ void main() {
   group('ObstacleRing', () {
     test('uses default rotation speed from GameConstants', () {
       final ring = ObstacleRing();
-      expect(ring.rotationSpeed, equals(GameConstants.baseRotationSpeed));
+      expect(ring.baseRotationSpeed, equals(GameConstants.baseRotationSpeed));
     });
 
     test('accepts custom rotation speed', () {
-      final ring = ObstacleRing(rotationSpeed: 2.5);
-      expect(ring.rotationSpeed, equals(2.5));
+      final ring = ObstacleRing(baseRotationSpeed: 2.5);
+      expect(ring.baseRotationSpeed, equals(2.5));
     });
 
     test('accepts position parameter', () {
@@ -65,16 +65,16 @@ void main() {
       expect(ring.position.y, equals(200));
     });
 
-    test('reset restores angle to zero', () {
+    test('reset randomizes angle', () {
       final ring = ObstacleRing();
       ring.angle = 1.5;
       ring.reset();
-      expect(ring.angle, equals(0.0));
+      expect(ring.angle, isNot(equals(1.5)));
     });
 
     test('reset can update position', () {
       final ring = ObstacleRing(position: Vector2(0, 0));
-      ring.reset(newPosition: Vector2(50, 100));
+      ring.reset(position: Vector2(50, 100));
       expect(ring.position.x, equals(50));
       expect(ring.position.y, equals(100));
     });
